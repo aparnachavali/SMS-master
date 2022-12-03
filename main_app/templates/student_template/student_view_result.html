@@ -1,0 +1,52 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+{% block page_title %}
+    {{ page_title }}
+{% endblock page_title %}
+{% block content %}
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-12">
+                    <!-- general form elements -->
+                    <!-- /.card -->
+                    <div class="card card-dark">
+                        <div class="card-header">
+                            <h3 class="card-title">{{ page_title }}</h3>
+                        </div>
+                        <div class="table p-2">
+                            <table class="table table-bordered">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Subject</th>
+                                    <th>Assignment 1</th>
+                                    <th>Assignment 2</th>
+                                    <th>Assignment 3</th>
+                                    <th>Assignment 4</th>
+                                    <th>Mid 1</th>
+                                    <th>Mid 2</th>
+                                    <th>Total</th>
+                                </tr>
+                                {% for result in results %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>{{ result.section.subject }}</td>
+                                        <td>{{ result.assignment1 }}</td>
+                                        <td>{{ result.assignment2 }}</td>
+                                        <td>{{ result.assignment3 }}</td>
+                                        <td>{{ result.assignment4 }}</td>
+                                        <td>{{ result.mid1 }}</td>
+                                        <td>{{ result.mid2 }}</td>
+                                        <td>
+                                            {{ result.mid1|add:result.assignment1|add:result.assignment2|add:result.assignment3|add:result.assignment4|add:result.mid2 }}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock content %}

@@ -1,0 +1,165 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+{% block page_title %}
+    {{ page_title }}
+{% endblock page_title %}
+{% block content %}
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-12">
+                    <!-- general form elements -->
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="card card-dark">
+                            <div class="card-header">
+                                <h3 class="card-title">{{ page_title }}</h3>
+                            </div>
+                            <!-- /.card-header -->
+                            <!-- form start -->
+                            <div class="card-body">{{ form }}</div>
+                            <!-- /.card-body -->
+                            <div class="card-footer">
+                                <button type="submit" id='update_result' class="btn btn-primary btn-block">
+                                    Update
+                                    Result
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    <!-- /.card -->
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock content %}
+{% block custom_js %}
+    <script>
+    $(document).ready(function () {
+        $("#id_section").change(function () {
+            fetchStudents();
+        });
+        // $("#id_session_year").change(function () {
+        //     fetchStudents();
+        //     });
+        $("#id_student").change(function () {
+            fetch_student_result();
+        });
+        $("#id_assignment1").hide()
+        $("#id_assignment2").hide()
+        $("#id_assignment3").hide()
+        $("#id_assignment4").hide()
+        $("#id_mid1").hide()
+        $("#id_mid2").hide()
+        $("#update_result").hide()
+        $('label[for="id_assignment1"]').hide();
+        $('label[for="id_assignment2"]').hide();
+        $('label[for="id_assignment3"]').hide();
+        $('label[for="id_assignment4"]').hide();
+        $('label[for="id_mid1"]').hide();
+        $('label[for="id_mid2"]').hide();
+
+        function fetchStudents() {
+            var section = $("#id_section").val()
+            $("#id_student").html(null)
+            if (section.length == 0 || section < 1) {
+                return false;
+            }
+            $.ajax({
+                url: "{% url 'get_students' %}",
+                type: 'POST',
+                data: {
+                    section: section,
+                }
+            }).done(function (response) {
+                var json_data = JSON.parse(response)
+                if (json_data.length < 1) {
+                    alert("No data to display")
+                } else {
+                    var div_data = "<option>Select Student</option>"
+
+                    for (key in json_data) {
+                        div_data += "<option value='" + json_data[key]['id'] + "'>" + json_data[key]['name'] + " </option>"
+                    }
+
+                    $("#id_student").html(div_data)
+                }
+            }).fail(function (response) {
+                alert("Error in fetching students")
+            })
+        }
+
+        function fetch_student_result() {
+            var student = $("#id_student").val()
+            var section = $("#id_section").val()
+            $("#id_assignment1").val(null)
+            $("#id_assignment2").val(null)
+            $("#id_assignment3").val(null)
+            $("#id_assignment4").val(null)
+            $("#id_mid1").val(null)
+            $("#id_mid2").val(null)
+
+            $("#id_assignment1").hide()
+            $("#id_assignment2").hide()
+            $("#id_assignment3").hide()
+            $("#id_assignment4").hide()
+            $("#id_mid1").hide()
+            $("#id_mid2").hide()
+
+            $("#update_result").hide()
+
+            $('label[for="id_assignment1"]').hide();
+            $('label[for="id_assignment2"]').hide();
+            $('label[for="id_assignment3"]').hide();
+            $('label[for="id_assignment4"]').hide();
+            $('label[for="id_mid1"]').hide();
+            $('label[for="id_mid2"]').hide();
+
+            if (student.length == 0 || section.length == 0 || student < 1 || section < 1) {
+                return false;
+            }
+            $.ajax({
+                url: "{% url 'fetch_student_result' %}",
+                type: 'POST',
+                data: {
+                    section: section,
+                    student: student
+                }
+            }).done(function (response) {
+                if (response == 'False') {
+                    alert("No data to display")
+                } else {
+                    var json_data = JSON.parse(response)
+
+                    $("#id_assignment1").val(json_data['assignment1'])
+                    $("#id_assignment2").val(json_data['assignment2'])
+                    $("#id_assignment3").val(json_data['assignment3'])
+                    $("#id_assignment4").val(json_data['assignment4'])
+                    $("#id_mid1").val(json_data['mid1'])
+                    $("#id_mid2").val(json_data['mid2'])
+
+                    $("#id_assignment1").show()
+                    $("#id_assignment2").show()
+                    $("#id_assignment3").show()
+                    $("#id_assignment4").show()
+                    $("#id_mid1").show()
+                    $("#id_mid2").show()
+
+                    $("#update_result").show()
+
+                    $('label[for="id_assignment1"]').show();
+                    $('label[for="id_assignment2"]').show();
+                    $('label[for="id_assignment3"]').show();
+                    $('label[for="id_assignment4"]').show();
+                    $('label[for="id_mid1"]').show();
+                    $('label[for="id_mid2"]').show();
+
+                }
+            }).fail(function (response) {
+                alert("Error in fetching students")
+            })
+        }
+
+    })
+    </script>
+{% endblock custom_js %}

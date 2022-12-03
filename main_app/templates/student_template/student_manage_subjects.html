@@ -1,0 +1,51 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+{% block page_title %}
+    {{ page_title }}
+{% endblock page_title %}
+{% block content %}
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">{{ page_title }}</h3>
+                        </div>
+                        <!-- /.card-header -->
+                        <div class="card-body">
+                            <table id="example2" class="table table-bordered table-hover">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Subject</th>
+                                        <th>Instructor</th>
+                                        <th>Course</th>
+                                        <th>Timeslots</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sd in section_data %}
+                                        <tr>
+                                            <td>{{ forloop.counter }}</td>
+                                            <td>{{ sd.section.subject.name }}</td>
+                                            <td>{{ sd.section.staff.custom_user }}</td>
+                                            <td>{{ sd.section.subject.course.name }}</td>
+                                            <td>{{ sd.timeslot }}</td>
+                                            <td>
+                                                <a href="{% url 'student_subject_delete' sd.section.id %}"
+                                                   onclick="return confirm('Are you sure you want to delete this ?')"
+                                                   class="btn btn-danger">Delete</a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock content %}

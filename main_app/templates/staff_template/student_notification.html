@@ -1,0 +1,155 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+{% block page_title %}{{page_title}}{% endblock page_title %}
+
+{% block content %}
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">{{page_title}}</h3>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body">
+                        <table id="example2" class="table table-bordered table-hover">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th> <input type="button" onclick='selects()' value="Select All"/> </th>
+                                    <th>#</th>
+                                    <th>Full Name</th>
+                                    <th>Email</th>
+                                    <th>Gender</th>
+                                    <th>Course</th>
+                                    <th>Avatar</th>
+                                   <!-- <th>Action</th> -->
+                                </tr>
+                                <button data-toggle = "modal" data-target = "#myModal"class="btn btn-primary show_notification" value="{{student.id}}">Send Notification</button>
+                            </thead>
+                            <tbody>
+                                {% for student in students %}
+                                <tr>
+                                    <td><input type = "checkbox" id={{student.id}} name="temp"/> </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{student.last_name}}, {{student.first_name}}</td>
+                                    <td>{{student.email}}</td>
+                                    <td>{{student.gender}}</td>
+                                    <td>{{student.student.course.name}}</td>
+                                    <td>
+                                        {% if student.profile_pic == ""  %}
+                                        No Image
+                                        {% else %}
+                                        <img class="img img-fluid mb-2" height="56" width="56"
+                                            src="{{student.profile_pic}}" alt="">
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<div class = "modal fade" id = "myModal" tabindex = "-1" role = "dialog" 
+   aria-labelledby = "myModalLabel" aria-hidden = "true">
+   
+   <div class = "modal-dialog">
+      <div class = "modal-content">
+         
+         <div class = "modal-header">Send Notification
+            <button type = "button" class = "close" data-dismiss = "modal" aria-hidden = "true">
+                  &times;
+            </button>
+            
+           
+         </div>
+         
+         <div class = "modal-body">
+            <div class="form-group">
+                <textarea id="message" class='form-control' rows="4" cols="75"></textarea>
+                <input type="hidden"  id="student_id" class='form-control'>
+            </div>
+         </div>
+         
+         <div class = "modal-footer">
+            <button type = "button" class = "btn btn-danger" data-dismiss = "modal">
+               Close
+            </button>
+            
+            <button type = "button" id='send' class = "btn btn-success send_notification">
+               Send Notification
+            </button>
+         </div>
+         
+      </div><!-- /.modal-content -->
+   </div><!-- /.modal-dialog -->
+  
+</div><!-- /.modal -->
+{% endblock content %}
+{% block custom_js %}
+  <script>
+      $(".show_notification").click(function(){
+          $("#student_id").val($(this).val())
+      })
+      function getStudentIds() {
+           var studentIds = [];
+           var ele = document.getElementsByName('temp');
+           for(var i=0; i<ele.length; i++){
+                if(ele[i].type == 'checkbox' && ele[i].checked == true)
+                    studentIds.push(ele[i].id)
+           }
+           return studentIds
+          }
+       function selects(){
+        var ele=document.getElementsByName('temp');
+        for(var i=0; i<ele.length; i++){
+            if(ele[i].type=='checkbox'){
+                if(ele[i].checked == true)
+                    ele[i].checked = false;
+                else
+                    ele[i].checked=true;
+            }
+        }
+        }
+      $(".send_notification").click(function(){
+          var student_id = getStudentIds()
+          var message = $("#message").val()
+          console.log("student_id "  + student_id)
+          console.log("message "  + message.toString())
+          for( var i =0 ; i <= student_id.length; i++){
+                sendNotification(student_id.pop(),message);
+          }
+
+      })
+    function sendNotification(student_id_val,message){
+        $.ajax({
+            url: "{% url 'staff_student_notification' %}",
+            type: 'POST',
+            data: {
+                student_id: student_id_val,
+                message:message
+            }
+        }).done(function (response) {
+           
+                
+            if (response == 'True'){
+                alert("Notification Sent");
+                location.reload();
+              }else{
+                alert("Notification could not be saved. Please try again.");
+              }
+               
+           
+        }).fail(function (response) {
+            alert("Error in saving token")
+        })
+
+    }
+
+  </script>
+{% endblock custom_js %}

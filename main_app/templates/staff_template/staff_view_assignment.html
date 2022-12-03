@@ -1,0 +1,191 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+{% block page_title %}
+  {{ page_title }}
+{% endblock page_title %}
+{% block content %}
+  <section class="content">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-12">
+          <!-- general form elements -->
+          <div class="card card-dark">
+            <div class="card-header">
+              <h3 class="card-title">{{ page_title }}</h3>
+            </div>
+            <!-- /.card-header -->
+            <!-- form start -->
+            <div class="card-body">
+              <div class="form-group">
+                <label>Section</label>
+                <select name="section" class="form-control" id='section'>
+                  <option value="">
+                    ----
+                  </option>
+                  {% for section in sections %}
+                    <option value="{{ section.id }}">
+                      {{ section }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <!-- /.card-body -->
+            <div class="card-footer">
+              <button type="button" id='fetch_student' class="btn btn-success btn-block">Fetch Students</button>
+            </div>
+          </div>
+          <div class="card card-dark" id="student_card">
+            <div class="card-body">
+              <div class="form-group" id="student_data">
+              </div>
+            </div>
+            <div class="card-footer">
+              <button type="button" id='get_assignments' class="btn btn-success btn-block">Get Assignments</button>
+            </div>
+          </div>
+          <!-- /.card -->
+          <div class="card card-dark" id="assignment_section">
+            <div class="card-header">
+              <h3 class="card-title">Assignments</h3>
+            </div>
+            <!-- /.card-header -->
+            <!-- form start -->
+            <div class="card-body">
+              <table id="example2" class="table table-bordered table-hover">
+                <thead class="thead-dark">
+                  <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>File</th>
+                    <th><button data-toggle="modal"
+                                                        data-target="#reply_modal"
+                                                        value="{{ feedback.id }}"
+                                                        class="btn btn-success reply_open_modal">
+                                                    Edit Scores
+                                                </button></th>
+                  </tr>
+                </thead>
+                <tbody id="assignments_table">
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+   <div class="modal fade"
+         id="reply_modal"
+         tabindex="-1"
+         role="dialog"
+         aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel"></h4>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden"  id="id"/>
+                    <p>
+                        Reply <span id="reply_name"></span>
+                    </p>
+                    <textarea name="reply_message"
+                              id="reply_message"
+                              cols="30"
+                              rows="10"
+                              class="form-control"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                    <button id="reply_btn" class="btn btn-success btn-block">Reply</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+{% endblock content %}
+{% block custom_js %}
+  <script>
+    $(document).ready(function () {
+
+        $("#assignment_section").hide()
+        $("#student_card").hide()
+        $("#fetch_student").click(function () {
+            var section = $("#section").val()
+            $("#student_data").html(null)
+            if (section.length  == 0 || section.length == 0){
+                alert("Please select session and subject");
+                return false;
+            }
+            $.ajax({
+                url: "{% url 'get_students' %}",
+                type: 'POST',
+                data: {
+                    section: section,
+                }
+            }).done(function (response) {
+                var json_data = JSON.parse(response)
+                if (json_data.length < 1) {
+                    alert("No data to display")
+                } else {
+                    $("#student_card").show()
+                    var div_data = "<label>Student</label>"
+                    div_data += "<select name='student' class='form-control' id='student'>"
+                    div_data +=  "<option value=''>----</option>"
+                      for (key in json_data) {
+                        div_data += "<option value='"+json_data[key]['id']+"'>"+json_data[key]['name']+"</option>"
+                    }
+                    div_data += "</select>"
+                    //div_data += "</div>"
+                    // div_data += "<div class='form-group'><button id='get_assignments' class='btn btn-success' type='button'>Get Assignments</button></div>"
+                    $("#student_data").html(div_data)
+                }
+            }).fail(function (response) {
+                alert("Error in fetching students")
+            })
+
+
+            $(document).on('click', '#get_assignments', function () {
+                var student = $("#student").val()
+                $.ajax({
+                    url: "{% url 'get_assignments' %}",
+                    type: 'POST',
+                    data: {
+                        student_id: student,
+                        section: section
+                    }
+                }).done(function (response) {
+                  var json_data = JSON.parse(response)
+                  if (json_data.length < 1) {
+                      alert("No data to display")
+                  } else {
+                    $("#assignment_section").show()
+                    var table_data = ""
+                    for (key in json_data) {
+                      var file_url =  json_data[key]['url'].replace("/media", "")
+                      table_data += "<tr>"
+                      table_data += "<td>"+(key + 1)+"</td>"
+                      table_data += "<td>"+json_data[key]['name']+"</td>"
+                      table_data += "<td>"
+                      table_data += "<a href="+file_url+" download class='btn btn-info' >Download</a>"
+                      table_data += "</td>"
+                      table_data += "</tr>"
+                    }
+                    $("#assignments_table").html(table_data)
+                  }
+                    
+                }).fail(function (response) {
+                    alert("Error in getting assignemnts")
+                })
+    
+            })
+
+
+        })
+    })
+  </script>
+{% endblock custom_js %}
